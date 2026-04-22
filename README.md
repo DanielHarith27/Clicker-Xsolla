@@ -450,3 +450,4 @@ For issues, questions, or contributions:
 3. Check Go server logs for errors
 4. Verify PostgreSQL logs for database errors
 5. Check browser console (F12) for frontend errors
+# Clicker-Xsolla
