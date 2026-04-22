@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clicker - Idle Game</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal active">
+      <div class="modal-content auth-content">
+        <h1>Clicker Game</h1>
+
+        <div id="loginForm" class="auth-form active">
+          <h2>Login</h2>
+          <input type="text" id="loginUsername" placeholder="Username" />
+          <input type="password" id="loginPassword" placeholder="Password" />
+          <button id="loginBtn" class="btn btn-primary">Login</button>
+          <p class="switch-form">
+            Don't have an account?
+            <a href="#" onclick="switchForm()">Sign up</a>
+          </p>
+        </div>
+
+        <div id="signupForm" class="auth-form">
+          <h2>Sign Up</h2>
+          <input type="text" id="signupUsername" placeholder="Username" />
+          <input type="email" id="signupEmail" placeholder="Email" />
+          <input type="password" id="signupPassword" placeholder="Password" />
+          <button id="signupBtn" class="btn btn-primary">Sign Up</button>
+          <p class="switch-form">
+            Already have an account?
+            <a href="#" onclick="switchForm()">Login</a>
+          </p>
+        </div>
+
+        <div id="authError" class="error-message hidden"></div>
+      </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+      <div class="modal-content payment-content">
+        <div class="payment-header">
+          <h2>Unlock Level <span id="paymentLevelNumber"></span></h2>
+          <button class="close-btn" onclick="closePaymentModal()">
+            &times;
+          </button>
+        </div>
+        <div class="payment-body">
+          <p class="payment-info">You can unlock this level by paying with:</p>
+          <div class="payment-loading hidden" id="paymentLoading">
+            <div class="spinner"></div>
+            <p>Opening payment widget...</p>
+          </div>
+          <div id="xsollaPaymentContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div id="gameContainer" class="game-container">
+      <!-- Header -->
+      <div class="game-header">
+        <div class="user-info">
+          <span id="userDisplay">Player</span>
+          <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+        </div>
+      </div>
+
+      <div class="game-layout">
+        <!-- Left Panel: Coin Display & Click Button -->
+        <div class="left-panel">
+          <div class="coin-display">
+            <div class="coin-count">
+              <span id="coinCount">0</span>
+              <div class="coin-label">coins</div>
+            </div>
+            <div class="cps-display"><span id="cpsCount">0.0</span>/sec</div>
+          </div>
+
+          <button id="clickButton" class="click-button">
+            <span class="coin-emoji">🪙</span>
+          </button>
+
+          <div class="click-info">Click to earn coins!</div>
+        </div>
+
+        <!-- Middle Panel: Upgrade Store -->
+        <div class="middle-panel">
+          <h2>Upgrade Store</h2>
+          <div id="upgradeStore" class="upgrade-store"></div>
+        </div>
+
+        <!-- Right Panel: Level Map -->
+        <div class="right-panel">
+          <h2>Level Map</h2>
+          <div id="levelMap" class="level-map"></div>
+        </div>
+      </div>
+
+      <!-- Debug/Save Info -->
+      <div class="game-footer">
+        <button id="saveBtn" class="btn btn-secondary">Save Game</button>
+        <span id="autoSaveInfo" class="auto-save-info">Auto-saving...</span>
+      </div>
+    </div>
+
+    <!-- Floating Numbers -->
+    <div id="floatingNumbersContainer" class="floating-numbers-container"></div>
+
+    <script src="https://cdn.xsolla.net/payments-bucket-prod/embed/1.5.4/widget.min.js"></script>
+    <script src="./src/game.js"></script>
+  </body>
+</html>
