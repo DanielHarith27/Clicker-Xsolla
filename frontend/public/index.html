@@ -43,90 +43,156 @@
       </div>
     </div>
 
+    <!-- District Clear Modal -->
+    <div id="districtClearModal" class="modal">
+      <div class="modal-content district-clear-content">
+        <h2>District Cleared</h2>
+        <p>You have defeated <span id="clearDistrictLabel">District 1</span>.</p>
+        <p>Reward: <strong id="clearBonusLabel">+0 CR</strong></p>
+        <div class="clear-actions">
+          <button id="clearHomeBtn" class="btn btn-secondary">Back Home</button>
+          <button id="clearNextBtn" class="btn btn-primary">Fight Next District</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Main Game Container -->
-    <div id="gameContainer" class="game-container">
-      <!-- Header -->
+    <div id="gameContainer" class="game-container hidden">
       <div class="game-header">
         <div class="user-info">
           <span id="userDisplay">Player</span>
+          <span id="playerRank" class="header-rank">Street Rank 1</span>
+        </div>
+        <div class="header-actions">
+          <button id="navHomeBtn" class="btn btn-secondary nav-btn">Home</button>
+          <button id="navStoreBtn" class="btn btn-secondary nav-btn">Store</button>
+          <button id="navDistrictsBtn" class="btn btn-secondary nav-btn">Districts</button>
           <button id="logoutBtn" class="btn btn-secondary">Logout</button>
         </div>
       </div>
 
-      <div class="game-layout">
-        <!-- Left Panel: Fight Arena -->
-        <div class="left-panel">
-          <div class="fight-arena">
-            <div class="arena-banner">Night Shift Duel</div>
-            <div class="fighter-row">
-              <div class="fighter-card fighter-player">
-                <div class="fighter-avatar fighter-avatar-player" aria-hidden="true">
-                  <span class="sprite-head"></span>
-                  <span class="sprite-body"></span>
-                </div>
-                <div class="fighter-title">Runner</div>
-                <div id="playerRank" class="fighter-subtitle">Street Rank 1</div>
-              </div>
-              <div class="fighter-vs">VS</div>
-              <div class="fighter-card fighter-enemy">
-                <div class="fighter-avatar fighter-avatar-enemy" aria-hidden="true">
-                  <span class="sprite-head"></span>
-                  <span class="sprite-body"></span>
-                </div>
-                <div class="fighter-title" id="enemyName">Neon Thug</div>
-                <div class="fighter-subtitle" id="enemyTier">Tier 1</div>
-              </div>
-            </div>
-            <div class="health-wrap">
-              <div class="health-label-row">
-                <span>Opponent HP</span>
-                <span id="enemyHealthText">0 / 0</span>
-              </div>
-              <div class="health-bar">
-                <div id="enemyHealthFill" class="health-fill"></div>
-              </div>
-            </div>
-            <div class="combat-summary">
-              <span>Combo <span id="comboCount">x0</span></span>
-              <span class="combat-divider">|</span>
-              <span>Attack <span id="attackPower">1</span></span>
-              <span class="combat-divider">|</span>
-              <span>Tier <span id="weaponTierLabel">Brawler I</span></span>
-            </div>
-            <div id="battleLog" class="battle-log">Click STRIKE to hit the opponent.</div>
-            <div class="combat-meta">
-              Next: <span id="nextTierLabel">2 mods</span>
-              <span class="combat-divider">•</span>
-              Boost: <span id="milestoneLabel">+0 dmg</span>
-            </div>
-            <div class="combat-subtle" id="powerCurveLabel">Power curve stable</div>
-          </div>
-
-          <div class="coin-display">
-            <div id="coinCount" class="coin-count">0</div>
-            <div class="coin-label">credits</div>
-            <div class="cps-display"><span id="cpsCount">0.0</span> damage/sec</div>
-          </div>
-
-          <button id="clickButton" class="click-button">
-            <span class="attack-label">STRIKE</span>
-          </button>
+      <div class="resource-bar">
+        <div class="coin-display compact">
+          <div id="coinCount" class="coin-count">0</div>
+          <div class="coin-label">credits</div>
+          <div class="cps-display"><span id="cpsCount">0.0</span> damage/sec</div>
         </div>
-
-        <!-- Middle Panel: Upgrade Store -->
-        <div class="middle-panel">
-          <h2>Street Armory</h2>
-          <div id="upgradeStore" class="upgrade-store"></div>
-        </div>
-
-        <!-- Right Panel: Level Map -->
-        <div class="right-panel">
-          <h2>District Gates</h2>
-          <div id="levelMap" class="level-map"></div>
-        </div>
+        <div class="combat-pill">Attack <span id="attackPower">1</span></div>
+        <div class="combat-pill">Tier <span id="weaponTierLabel">Brawler I</span></div>
+        <div class="combat-pill">Combo <span id="comboCount">x0</span></div>
       </div>
 
-      <!-- Debug/Save Info -->
+      <main class="view-shell">
+        <section id="homeView" class="view-panel active-view">
+          <div class="hero-card">
+            <p class="story-overline">Story Mode</p>
+            <h1>Neon Alley Chronicles</h1>
+            <p id="homeStoryText" class="hero-story"></p>
+            <div class="hero-actions">
+              <button id="homePlayBtn" class="btn btn-primary">Start Adventure</button>
+              <button id="homeDistrictBtn" class="btn btn-secondary">Choose District</button>
+              <button id="homeStoreBtn" class="btn btn-secondary">Open Store</button>
+            </div>
+          </div>
+          <div class="home-grid">
+            <div class="info-card">
+              <h3>Current Assignment</h3>
+              <p id="homeCurrentMission">Select a district to begin your run.</p>
+            </div>
+            <div class="info-card">
+              <h3>Progress</h3>
+              <p id="homeProgress">0 districts cleared</p>
+            </div>
+            <div class="info-card">
+              <h3>Power Curve</h3>
+              <p id="powerCurveLabel">Power curve stable</p>
+              <p>Next: <span id="nextTierLabel">2 mods</span> · Boost: <span id="milestoneLabel">+0 dmg</span></p>
+            </div>
+          </div>
+          <div class="home-roadmap">
+            <h3>District Roadmap</h3>
+            <p>Clear districts in order to unlock the next adventure route.</p>
+            <div id="homeDistrictRoadmap" class="roadmap-list"></div>
+          </div>
+        </section>
+
+        <section id="playView" class="view-panel hidden">
+          <div class="play-layout">
+            <div class="fight-arena">
+              <div class="arena-banner" id="districtTitle">District 1</div>
+              <div class="fighter-row">
+                <div class="fighter-card fighter-player">
+                  <div class="fighter-avatar fighter-avatar-player" aria-hidden="true">
+                    <span class="sprite-head"></span>
+                    <span class="sprite-body"></span>
+                  </div>
+                  <div class="fighter-title">Runner</div>
+                  <div class="fighter-subtitle" id="playerRoleText">District Enforcer</div>
+                </div>
+                <div class="fighter-vs">VS</div>
+                <div class="fighter-card fighter-enemy">
+                  <div class="fighter-avatar fighter-avatar-enemy" aria-hidden="true">
+                    <span class="sprite-head"></span>
+                    <span class="sprite-body"></span>
+                  </div>
+                  <div class="fighter-title" id="enemyName">Choose district</div>
+                  <div class="fighter-subtitle" id="enemyTier">Awaiting mission</div>
+                </div>
+              </div>
+              <div class="run-stats">
+                <span>Time Left <strong id="missionTimer">--</strong></span>
+                <span class="combat-divider">|</span>
+                <span>Wave <strong id="waveLabel">0/0</strong></span>
+                <span class="combat-divider">|</span>
+                <span>Status <strong id="runStatusLabel">Idle</strong></span>
+              </div>
+              <div class="health-wrap">
+                <div class="health-label-row">
+                  <span>Opponent HP</span>
+                  <span id="enemyHealthText">0 / 0</span>
+                </div>
+                <div class="health-bar">
+                  <div id="enemyHealthFill" class="health-fill"></div>
+                </div>
+              </div>
+              <div id="battleLog" class="battle-log">Pick a district, then press Start Run.</div>
+              <div class="play-actions">
+                <button id="startRunBtn" class="btn btn-primary">Start Run</button>
+                <button id="clickButton" class="click-button" disabled>
+                  <span class="attack-label">STRIKE</span>
+                </button>
+                <button id="retreatBtn" class="btn btn-secondary" disabled>Retreat</button>
+              </div>
+            </div>
+            <aside class="mission-panel">
+              <h2>Mission Brief</h2>
+              <p id="districtStoryText">No district selected.</p>
+              <p id="districtObjectiveText">Objective: Survive each wave and defeat the boss before time runs out.</p>
+              <div class="mission-rewards">
+                <h3>Rewards</h3>
+                <p id="districtRewardText">Clear district to earn bonus credits and unlock the next route.</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="storeView" class="view-panel hidden">
+          <div class="section-header">
+            <h2>Street Armory</h2>
+            <p>Upgrade your gear to increase damage and passive income.</p>
+          </div>
+          <div id="upgradeStore" class="upgrade-store"></div>
+        </section>
+
+        <section id="districtsView" class="view-panel hidden">
+          <div class="section-header">
+            <h2>District Routes</h2>
+            <p>Clear each district in order. You must beat the previous district before starting the next one.</p>
+          </div>
+          <div id="levelMap" class="level-map"></div>
+        </section>
+      </main>
+
       <div class="game-footer">
         <button id="saveBtn" class="btn btn-secondary">Save Game</button>
         <span id="autoSaveInfo" class="auto-save-info">Auto-saving...</span>
