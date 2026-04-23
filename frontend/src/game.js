@@ -1,5 +1,8 @@
 // --- CONSTANTS ---
-const API_URL = "http://localhost:8080/api";
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8080/api"
+    : `${window.location.origin}/api`;
 const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 const PASSIVE_INCOME_UPDATE_INTERVAL = 1000; // 1 second
 const FLOATING_NUMBER_DURATION = 1500; // ms
