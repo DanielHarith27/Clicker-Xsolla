@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: clicker-xsolla
+    runtime: go
+    rootDir: backend
+    buildCommand: go build -o bin/server ./cmd/server/main.go
+    startCommand: ./bin/server
+    envVars:
+      - key: SERVER_PORT
+        value: 10000
+      - key: ENV
+        value: production
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 5432
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: XSOLLA_LOGIN_PROJECT_ID
+        sync: false
+      - key: XSOLLA_CLIENT_ID
+        sync: false
+      - key: XSOLLA_CLIENT_SECRET
+        sync: false
+      - key: XSOLLA_REDIRECT_URI
+        value: https://clicker-xsolla.onrender.com/auth/callback
+      - key: XSOLLA_MERCHANT_ID
+        sync: false
+      - key: XSOLLA_API_KEY
+        sync: false
+      - key: XSOLLA_PROJECT_ID
+        sync: false
+      - key: XSOLLA_SANDBOX
+        value: true
