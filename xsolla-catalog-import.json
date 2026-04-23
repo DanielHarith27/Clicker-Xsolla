@@ -1,0 +1,558 @@
+{
+  "virtual_currency": [],
+  "virtual_items": [
+    {
+      "sku": "level_2",
+      "name": {
+        "en-US": "Level 2 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 2,
+      "description": {
+        "en-US": "Unlock Level 2 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 2
+      }
+    },
+    {
+      "sku": "level_3",
+      "name": {
+        "en-US": "Level 3 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 3,
+      "description": {
+        "en-US": "Unlock Level 3 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 3
+      }
+    },
+    {
+      "sku": "level_4",
+      "name": {
+        "en-US": "Level 4 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 4,
+      "description": {
+        "en-US": "Unlock Level 4 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 4
+      }
+    },
+    {
+      "sku": "level_5",
+      "name": {
+        "en-US": "Level 5 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 5,
+      "description": {
+        "en-US": "Unlock Level 5 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 5
+      }
+    },
+    {
+      "sku": "level_6",
+      "name": {
+        "en-US": "Level 6 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 6,
+      "description": {
+        "en-US": "Unlock Level 6 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 6
+      }
+    },
+    {
+      "sku": "level_7",
+      "name": {
+        "en-US": "Level 7 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 7,
+      "description": {
+        "en-US": "Unlock Level 7 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 7
+      }
+    },
+    {
+      "sku": "level_8",
+      "name": {
+        "en-US": "Level 8 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 8,
+      "description": {
+        "en-US": "Unlock Level 8 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 8
+      }
+    },
+    {
+      "sku": "level_9",
+      "name": {
+        "en-US": "Level 9 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 9,
+      "description": {
+        "en-US": "Unlock Level 9 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 9
+      }
+    },
+    {
+      "sku": "level_10",
+      "name": {
+        "en-US": "Level 10 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 10,
+      "description": {
+        "en-US": "Unlock Level 10 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 10
+      }
+    },
+    {
+      "sku": "level_11",
+      "name": {
+        "en-US": "Level 11 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 11,
+      "description": {
+        "en-US": "Unlock Level 11 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 11
+      }
+    },
+    {
+      "sku": "level_12",
+      "name": {
+        "en-US": "Level 12 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 12,
+      "description": {
+        "en-US": "Unlock Level 12 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 12
+      }
+    },
+    {
+      "sku": "level_13",
+      "name": {
+        "en-US": "Level 13 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 13,
+      "description": {
+        "en-US": "Unlock Level 13 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 13
+      }
+    },
+    {
+      "sku": "level_14",
+      "name": {
+        "en-US": "Level 14 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 14,
+      "description": {
+        "en-US": "Unlock Level 14 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 14
+      }
+    },
+    {
+      "sku": "level_15",
+      "name": {
+        "en-US": "Level 15 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 15,
+      "description": {
+        "en-US": "Unlock Level 15 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 15
+      }
+    },
+    {
+      "sku": "level_16",
+      "name": {
+        "en-US": "Level 16 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 16,
+      "description": {
+        "en-US": "Unlock Level 16 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 16
+      }
+    },
+    {
+      "sku": "level_17",
+      "name": {
+        "en-US": "Level 17 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 17,
+      "description": {
+        "en-US": "Unlock Level 17 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 17
+      }
+    },
+    {
+      "sku": "level_18",
+      "name": {
+        "en-US": "Level 18 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 18,
+      "description": {
+        "en-US": "Unlock Level 18 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 18
+      }
+    },
+    {
+      "sku": "level_19",
+      "name": {
+        "en-US": "Level 19 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 19,
+      "description": {
+        "en-US": "Unlock Level 19 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 19
+      }
+    },
+    {
+      "sku": "level_20",
+      "name": {
+        "en-US": "Level 20 Unlock"
+      },
+      "is_enabled": true,
+      "is_free": false,
+      "groups": [
+        "levels"
+      ],
+      "order": 20,
+      "description": {
+        "en-US": "Unlock Level 20 in Xsolla Game"
+      },
+      "prices": [
+        {
+          "amount": 2.99,
+          "currency": "USD",
+          "is_enabled": true,
+          "is_default": true
+        }
+      ],
+      "vc_prices": [],
+      "is_show_in_store": true,
+      "custom_attributes": {
+        "item_type": "level_unlock",
+        "level_number": 20
+      }
+    }
+  ],
+  "virtual_currency_packages": [],
+  "bundles": []
+}

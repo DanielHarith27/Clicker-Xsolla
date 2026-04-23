@@ -73,7 +73,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Initialize levels
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= 20; i++ {
 		unlocked := i == 1
 		_, err = h.db.Exec(
 			"INSERT INTO user_levels (user_id, level_number, unlocked) VALUES ($1, $2, $3)",

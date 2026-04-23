@@ -130,10 +130,69 @@ func createTables(db *sql.DB) error {
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
 
+	-- Add xsolla_id column if it doesn't exist (safe migration)
+	ALTER TABLE users ADD COLUMN IF NOT EXISTS xsolla_id VARCHAR(255);
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_users_xsolla_id ON users(xsolla_id) WHERE xsolla_id IS NOT NULL;
+
 	CREATE INDEX IF NOT EXISTS idx_game_state_user_id ON game_state(user_id);
 	CREATE INDEX IF NOT EXISTS idx_user_upgrades_user_id ON user_upgrades(user_id);
 	CREATE INDEX IF NOT EXISTS idx_user_levels_user_id ON user_levels(user_id);
 	CREATE INDEX IF NOT EXISTS idx_payment_records_user_id ON payment_records(user_id);
+
+	WITH canonical AS (
+		SELECT name, MIN(id) AS keep_id
+		FROM upgrades
+		GROUP BY name
+	),
+	to_move AS (
+		SELECT u.id AS old_id, c.keep_id
+		FROM upgrades u
+		JOIN canonical c ON c.name = u.name
+		WHERE u.id <> c.keep_id
+	),
+	merged_counts AS (
+		SELECT uu.user_id, tm.keep_id AS upgrade_id, SUM(uu.owned_count) AS owned_count
+		FROM user_upgrades uu
+		JOIN to_move tm ON tm.old_id = uu.upgrade_id
+		GROUP BY uu.user_id, tm.keep_id
+	)
+	INSERT INTO user_upgrades (user_id, upgrade_id, owned_count)
+	SELECT mc.user_id, mc.upgrade_id, mc.owned_count
+	FROM merged_counts mc
+	ON CONFLICT (user_id, upgrade_id)
+	DO UPDATE SET owned_count = user_upgrades.owned_count + EXCLUDED.owned_count;
+
+	WITH canonical AS (
+		SELECT name, MIN(id) AS keep_id
+		FROM upgrades
+		GROUP BY name
+	),
+	to_move AS (
+		SELECT u.id AS old_id, c.keep_id
+		FROM upgrades u
+		JOIN canonical c ON c.name = u.name
+		WHERE u.id <> c.keep_id
+	)
+	DELETE FROM user_upgrades uu
+	USING to_move tm
+	WHERE uu.upgrade_id = tm.old_id;
+
+	WITH canonical AS (
+		SELECT name, MIN(id) AS keep_id
+		FROM upgrades
+		GROUP BY name
+	),
+	to_delete AS (
+		SELECT u.id AS old_id
+		FROM upgrades u
+		JOIN canonical c ON c.name = u.name
+		WHERE u.id <> c.keep_id
+	)
+	DELETE FROM upgrades u
+	USING to_delete td
+	WHERE u.id = td.old_id;
+
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_upgrades_name_unique ON upgrades(name);
 
 	INSERT INTO upgrades (name, description, base_cost, coins_per_second_gain, icon) VALUES
 		('Cursor', 'A helpful cursor to click faster', 10, 0.1, '👆'),
@@ -150,8 +209,13 @@ func createTables(db *sql.DB) error {
 		('Portal', 'A portal to coin dimension', 500000000, 5000000, '🌀'),
 		('Infinity Engine', 'An engine of infinite coins', 2000000000, 20000000, '♾️'),
 		('Multiverse Generator', 'Coins from alternate universes', 10000000000, 100000000, '🌌'),
-		('God Mode', 'Godly powers of coin creation', 50000000000, 500000000, '✨')
-	ON CONFLICT DO NOTHING;
+		('God Mode', 'Godly powers of coin creation', 50000000000, 500000000, '✨'),
+		('Quantum Mine', 'Extracts coins from quantum foam', 250000000000, 2500000000, '⚛️'),
+		('Nebula Forge', 'Forges coin clusters in a nebula core', 1000000000000, 10000000000, '🛠️'),
+		('Black Hole Vault', 'Compresses matter into premium coins', 5000000000000, 50000000000, '🕳️'),
+		('Celestial Bazaar', 'Trades stardust for compounding profit', 20000000000000, 200000000000, '🛒'),
+		('Singularity Core', 'A runaway engine of autonomous growth', 100000000000000, 1000000000000, '☄️')
+	ON CONFLICT (name) DO NOTHING;
 
 	INSERT INTO levels (level_number, coin_threshold, unlock_cost) VALUES
 		(1, 0, NULL),
@@ -163,7 +227,17 @@ func createTables(db *sql.DB) error {
 		(7, 250000, 299),
 		(8, 1000000, 299),
 		(9, 5000000, 299),
-		(10, 25000000, 299)
+		(10, 25000000, 299),
+		(11, 100000000, 299),
+		(12, 250000000, 299),
+		(13, 500000000, 299),
+		(14, 1000000000, 299),
+		(15, 2500000000, 299),
+		(16, 5000000000, 299),
+		(17, 10000000000, 299),
+		(18, 25000000000, 299),
+		(19, 50000000000, 299),
+		(20, 100000000000, 299)
 	ON CONFLICT DO NOTHING;
 	`
 

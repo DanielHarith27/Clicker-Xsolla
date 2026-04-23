@@ -51,10 +51,15 @@ func main() {
 	router.POST("/api/game/save", middleware.AuthMiddleware(), gameHandler.SaveGame)
 
 	// Xsolla routes
+	router.GET("/api/xsolla/login-url", xsollaHandler.GetLoginURL)
+	router.POST("/api/xsolla/oauth-callback", xsollaHandler.HandleOAuthCallback)
 	router.POST("/api/xsolla/token", middleware.AuthMiddleware(), xsollaHandler.CreateToken)
+	router.POST("/api/xsolla/webhook/payment", xsollaHandler.HandlePaymentWebhook)
 
 	// Serve frontend
 	router.StaticFile("/", "../frontend/public/index.html")
+	router.StaticFile("/auth/callback", "../frontend/public/index.html")
+	router.StaticFile("/favicon.ico", "../frontend/public/favicon.ico")
 	router.Static("/src", "../frontend/src")
 
 	port := os.Getenv("SERVER_PORT")

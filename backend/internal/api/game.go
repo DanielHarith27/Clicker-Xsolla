@@ -18,6 +18,48 @@ func NewGameHandler(db *sql.DB) *GameHandler {
 	return &GameHandler{db: db}
 }
 
+var upgradeMaxOwnedCounts = map[string]int{
+	"Cursor":               25,
+	"Grandma":              15,
+	"Farm":                 12,
+	"Factory":              10,
+	"Bank":                 8,
+	"Wizard":               7,
+	"Robot":                6,
+	"Alien":                5,
+	"Wizard Tower":         5,
+	"Time Machine":         4,
+	"Spaceship":            4,
+	"Portal":               3,
+	"Infinity Engine":      3,
+	"Multiverse Generator": 2,
+	"God Mode":             2,
+	"Quantum Mine":         2,
+	"Nebula Forge":         2,
+	"Black Hole Vault":     1,
+	"Celestial Bazaar":     1,
+	"Singularity Core":     1,
+}
+
+func getUpgradeMaxOwnedCount(name string) int {
+	if maxCount, exists := upgradeMaxOwnedCounts[name]; exists {
+		return maxCount
+	}
+
+	return 1
+}
+
+// getUpgradeTotalGain returns the total passive gain from an upgrade at a given owned count.
+// Example with base 0.1: 1 owned => 0.10, 2 owned => 0.15, 3 owned => 0.20.
+func getUpgradeTotalGain(baseGain float64, ownedCount int) float64 {
+	if ownedCount <= 0 {
+		return 0
+	}
+
+	growthMultiplier := 1 + (0.5 * float64(ownedCount-1))
+	return baseGain * growthMultiplier
+}
+
 // bindJSON consolidates JSON binding error handling
 func (h *GameHandler) bindJSON(c *gin.Context, req interface{}) bool {
 	if err := c.ShouldBindJSON(req); err != nil {
@@ -62,6 +104,7 @@ func (h *GameHandler) GetState(c *gin.Context) {
 		var upgrade models.Upgrade
 		rows.Scan(&upgrade.ID, &upgrade.Name, &upgrade.Description, &upgrade.BaseCost,
 			&upgrade.CoinsPerSecondGain, &upgrade.Icon, &upgrade.OwnedCount)
+		upgrade.MaxOwnedCount = getUpgradeMaxOwnedCount(upgrade.Name)
 		upgrades = append(upgrades, upgrade)
 	}
 
@@ -133,9 +176,9 @@ func (h *GameHandler) BuyUpgrade(c *gin.Context) {
 	// Get upgrade details
 	var upgrade models.Upgrade
 	err := h.db.QueryRow(
-		"SELECT id, base_cost, coins_per_second_gain FROM upgrades WHERE id = $1",
+		"SELECT id, name, base_cost, coins_per_second_gain FROM upgrades WHERE id = $1",
 		req.UpgradeID,
-	).Scan(&upgrade.ID, &upgrade.BaseCost, &upgrade.CoinsPerSecondGain)
+	).Scan(&upgrade.ID, &upgrade.Name, &upgrade.BaseCost, &upgrade.CoinsPerSecondGain)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, models.ErrorResponse{Error: "upgrade not found"})
@@ -148,8 +191,13 @@ func (h *GameHandler) BuyUpgrade(c *gin.Context) {
 		"SELECT COALESCE(owned_count, 0) FROM user_upgrades WHERE user_id = $1 AND upgrade_id = $2",
 		userID, req.UpgradeID,
 	).Scan(&ownedCount)
-
-	cost := int64(math.Ceil(float64(upgrade.BaseCost) * math.Pow(1.15, float64(ownedCount))))
+	if err != nil && err != sql.ErrNoRows {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "failed to get upgrade ownership"})
+		return
+	}
+	if err == sql.ErrNoRows {
+		ownedCount = 0
+	}
 
 	// Get current coins
 	var currentCoins int64
@@ -164,15 +212,43 @@ func (h *GameHandler) BuyUpgrade(c *gin.Context) {
 		return
 	}
 
+	maxOwnedCount := getUpgradeMaxOwnedCount(upgrade.Name)
+	if ownedCount >= maxOwnedCount {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":           "upgrade limit reached",
+			"message":         "This upgrade is maxed out",
+			"upgrade_id":      req.UpgradeID,
+			"upgrade_name":    upgrade.Name,
+			"owned_count":     ownedCount,
+			"max_owned_count": maxOwnedCount,
+			"current_coins":   currentCoins,
+		})
+		return
+	}
+
+	previousTotalGain := getUpgradeTotalGain(upgrade.CoinsPerSecondGain, ownedCount)
+	newTotalGain := getUpgradeTotalGain(upgrade.CoinsPerSecondGain, ownedCount+1)
+	purchaseGain := newTotalGain - previousTotalGain
+
+	cost := int64(math.Ceil(float64(upgrade.BaseCost) * math.Pow(1.15, float64(ownedCount))))
+
 	if currentCoins < cost {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "not enough coins"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":            "not enough coins",
+			"required_coins":   cost,
+			"current_coins":    currentCoins,
+			"upgrade_id":       req.UpgradeID,
+			"owned_count":      ownedCount,
+			"max_owned_count":  maxOwnedCount,
+			"coins_per_second": cps,
+		})
 		return
 	}
 
 	// Deduct coins and add upgrade
 	_, err = h.db.Exec(
 		"UPDATE game_state SET coins = coins - $1, coins_per_second = coins_per_second + $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3",
-		cost, upgrade.CoinsPerSecondGain, userID,
+		cost, purchaseGain, userID,
 	)
 
 	if err != nil {
@@ -180,24 +256,45 @@ func (h *GameHandler) BuyUpgrade(c *gin.Context) {
 		return
 	}
 
-	_, err = h.db.Exec(
-		"INSERT INTO user_upgrades (user_id, upgrade_id, owned_count) VALUES ($1, $2, 1) ON CONFLICT (user_id, upgrade_id) DO UPDATE SET owned_count = owned_count + 1",
+	result, err := h.db.Exec(
+		"UPDATE user_upgrades SET owned_count = owned_count + 1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND upgrade_id = $2",
 		userID, req.UpgradeID,
 	)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "failed to update upgrade count"})
 		return
 	}
 
-	cps += upgrade.CoinsPerSecondGain
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "failed to confirm upgrade purchase"})
+		return
+	}
+
+	if rowsAffected == 0 {
+		_, err = h.db.Exec(
+			"INSERT INTO user_upgrades (user_id, upgrade_id, owned_count) VALUES ($1, $2, 1)",
+			userID, req.UpgradeID,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "failed to create upgrade ownership"})
+			return
+		}
+	}
+
+	cps += purchaseGain
 	newCoins := currentCoins - cost
 	nextCost := int64(math.Ceil(float64(upgrade.BaseCost) * math.Pow(1.15, float64(ownedCount+1))))
+	if ownedCount+1 >= maxOwnedCount {
+		nextCost = 0
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"coins":            newCoins,
 		"coins_per_second": cps,
+		"upgrade_gain":     purchaseGain,
 		"next_cost":        nextCost,
+		"max_owned_count":  maxOwnedCount,
 	})
 }
 

@@ -3,36 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clicker - Idle Game</title>
-    <link rel="stylesheet" href="./src/styles.css" />
+    <title>Neon Alley Brawl</title>
+    <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <!-- Auth Modal -->
     <div id="authModal" class="modal active">
       <div class="modal-content auth-content">
-        <h1>Clicker Game</h1>
+        <h1>Neon Alley Brawl</h1>
 
-        <div id="loginForm" class="auth-form active">
-          <h2>Login</h2>
-          <input type="text" id="loginUsername" placeholder="Username" />
-          <input type="password" id="loginPassword" placeholder="Password" />
-          <button id="loginBtn" class="btn btn-primary">Login</button>
-          <p class="switch-form">
-            Don't have an account?
-            <a href="#" onclick="switchForm()">Sign up</a>
-          </p>
-        </div>
-
-        <div id="signupForm" class="auth-form">
-          <h2>Sign Up</h2>
-          <input type="text" id="signupUsername" placeholder="Username" />
-          <input type="email" id="signupEmail" placeholder="Email" />
-          <input type="password" id="signupPassword" placeholder="Password" />
-          <button id="signupBtn" class="btn btn-primary">Sign Up</button>
-          <p class="switch-form">
-            Already have an account?
-            <a href="#" onclick="switchForm()">Login</a>
-          </p>
+        <div class="auth-form active">
+          <h2>Enter Arena</h2>
+          <p>Sign in securely with Xsolla Login, then continue to play and pay with Paystation.</p>
+          <button id="xsollaLoginBtn" class="btn btn-primary">Login with Xsolla</button>
+          <p id="authHint" class="switch-form">You will be redirected back to the game after login.</p>
         </div>
 
         <div id="authError" class="error-message hidden"></div>
@@ -70,32 +54,74 @@
       </div>
 
       <div class="game-layout">
-        <!-- Left Panel: Coin Display & Click Button -->
+        <!-- Left Panel: Fight Arena -->
         <div class="left-panel">
-          <div class="coin-display">
-            <div class="coin-count">
-              <span id="coinCount">0</span>
-              <div class="coin-label">coins</div>
+          <div class="fight-arena">
+            <div class="arena-banner">Night Shift Duel</div>
+            <div class="fighter-row">
+              <div class="fighter-card fighter-player">
+                <div class="fighter-avatar fighter-avatar-player" aria-hidden="true">
+                  <span class="sprite-head"></span>
+                  <span class="sprite-body"></span>
+                </div>
+                <div class="fighter-title">Runner</div>
+                <div id="playerRank" class="fighter-subtitle">Street Rank 1</div>
+              </div>
+              <div class="fighter-vs">VS</div>
+              <div class="fighter-card fighter-enemy">
+                <div class="fighter-avatar fighter-avatar-enemy" aria-hidden="true">
+                  <span class="sprite-head"></span>
+                  <span class="sprite-body"></span>
+                </div>
+                <div class="fighter-title" id="enemyName">Neon Thug</div>
+                <div class="fighter-subtitle" id="enemyTier">Tier 1</div>
+              </div>
             </div>
-            <div class="cps-display"><span id="cpsCount">0.0</span>/sec</div>
+            <div class="health-wrap">
+              <div class="health-label-row">
+                <span>Opponent HP</span>
+                <span id="enemyHealthText">0 / 0</span>
+              </div>
+              <div class="health-bar">
+                <div id="enemyHealthFill" class="health-fill"></div>
+              </div>
+            </div>
+            <div class="combat-summary">
+              <span>Combo <span id="comboCount">x0</span></span>
+              <span class="combat-divider">|</span>
+              <span>Attack <span id="attackPower">1</span></span>
+              <span class="combat-divider">|</span>
+              <span>Tier <span id="weaponTierLabel">Brawler I</span></span>
+            </div>
+            <div id="battleLog" class="battle-log">Click STRIKE to hit the opponent.</div>
+            <div class="combat-meta">
+              Next: <span id="nextTierLabel">2 mods</span>
+              <span class="combat-divider">•</span>
+              Boost: <span id="milestoneLabel">+0 dmg</span>
+            </div>
+            <div class="combat-subtle" id="powerCurveLabel">Power curve stable</div>
+          </div>
+
+          <div class="coin-display">
+            <div id="coinCount" class="coin-count">0</div>
+            <div class="coin-label">credits</div>
+            <div class="cps-display"><span id="cpsCount">0.0</span> damage/sec</div>
           </div>
 
           <button id="clickButton" class="click-button">
-            <span class="coin-emoji">🪙</span>
+            <span class="attack-label">STRIKE</span>
           </button>
-
-          <div class="click-info">Click to earn coins!</div>
         </div>
 
         <!-- Middle Panel: Upgrade Store -->
         <div class="middle-panel">
-          <h2>Upgrade Store</h2>
+          <h2>Street Armory</h2>
           <div id="upgradeStore" class="upgrade-store"></div>
         </div>
 
         <!-- Right Panel: Level Map -->
         <div class="right-panel">
-          <h2>Level Map</h2>
+          <h2>District Gates</h2>
           <div id="levelMap" class="level-map"></div>
         </div>
       </div>
@@ -111,6 +137,6 @@
     <div id="floatingNumbersContainer" class="floating-numbers-container"></div>
 
     <script src="https://cdn.xsolla.net/payments-bucket-prod/embed/1.5.4/widget.min.js"></script>
-    <script src="./src/game.js"></script>
+    <script src="/src/game.js"></script>
   </body>
 </html>

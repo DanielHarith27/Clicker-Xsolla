@@ -89,8 +89,9 @@ CREATE INDEX idx_game_state_user_id ON game_state(user_id);
 CREATE INDEX idx_user_upgrades_user_id ON user_upgrades(user_id);
 CREATE INDEX idx_user_levels_user_id ON user_levels(user_id);
 CREATE INDEX idx_payment_records_user_id ON payment_records(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_upgrades_name_unique ON upgrades(name);
 
--- Insert default upgrades (15 upgrades with scaling costs)
+-- Insert default upgrades (20 upgrades with scaling costs)
 INSERT INTO upgrades (name, description, base_cost, coins_per_second_gain, icon) VALUES
   ('Cursor', 'A helpful cursor to click faster', 10, 0.1, '👆'),
   ('Grandma', 'A nice grandma to help click', 100, 1, '👵'),
@@ -106,10 +107,15 @@ INSERT INTO upgrades (name, description, base_cost, coins_per_second_gain, icon)
   ('Portal', 'A portal to coin dimension', 500000000, 5000000, '🌀'),
   ('Infinity Engine', 'An engine of infinite coins', 2000000000, 20000000, '♾️'),
   ('Multiverse Generator', 'Coins from alternate universes', 10000000000, 100000000, '🌌'),
-  ('God Mode', 'Godly powers of coin creation', 50000000000, 500000000, '✨')
-ON CONFLICT DO NOTHING;
+  ('God Mode', 'Godly powers of coin creation', 50000000000, 500000000, '✨'),
+  ('Quantum Mine', 'Extracts coins from quantum foam', 250000000000, 2500000000, '⚛️'),
+  ('Nebula Forge', 'Forges coin clusters in a nebula core', 1000000000000, 10000000000, '🛠️'),
+  ('Black Hole Vault', 'Compresses matter into premium coins', 5000000000000, 50000000000, '🕳️'),
+  ('Celestial Bazaar', 'Trades stardust for compounding profit', 20000000000000, 200000000000, '🛒'),
+  ('Singularity Core', 'A runaway engine of autonomous growth', 100000000000000, 1000000000000, '☄️')
+ON CONFLICT (name) DO NOTHING;
 
--- Insert default levels (10 levels)
+-- Insert default levels (20 levels)
 INSERT INTO levels (level_number, coin_threshold, unlock_cost) VALUES
   (1, 0, NULL),
   (2, 100, 299),
@@ -120,5 +126,15 @@ INSERT INTO levels (level_number, coin_threshold, unlock_cost) VALUES
   (7, 250000, 299),
   (8, 1000000, 299),
   (9, 5000000, 299),
-  (10, 25000000, 299)
+  (10, 25000000, 299),
+  (11, 100000000, 299),
+  (12, 250000000, 299),
+  (13, 500000000, 299),
+  (14, 1000000000, 299),
+  (15, 2500000000, 299),
+  (16, 5000000000, 299),
+  (17, 10000000000, 299),
+  (18, 25000000000, 299),
+  (19, 50000000000, 299),
+  (20, 100000000000, 299)
 ON CONFLICT DO NOTHING;
