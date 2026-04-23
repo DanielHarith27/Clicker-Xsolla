@@ -84,35 +84,65 @@
 
       <main class="view-shell">
         <section id="homeView" class="view-panel active-view">
-          <div class="hero-card">
-            <p class="story-overline">Story Mode</p>
-            <h1>Neon Alley Chronicles</h1>
-            <p id="homeStoryText" class="hero-story"></p>
-            <div class="hero-actions">
-              <button id="homePlayBtn" class="btn btn-primary">Start Adventure</button>
-              <button id="homeDistrictBtn" class="btn btn-secondary">Choose District</button>
-              <button id="homeStoreBtn" class="btn btn-secondary">Open Store</button>
+          <div class="home-dashboard">
+            <div class="hero-card home-mission-card">
+              <p class="story-overline">Story Mode</p>
+              <h1>Neon Alley Chronicles</h1>
+              <p id="homeStoryText" class="hero-story"></p>
+              <div class="home-mission-stats">
+                <div class="home-mission-stat">
+                  <span class="mission-label">Current Target District</span>
+                  <strong id="homeTargetDistrict">District 1: Byte Bazaar</strong>
+                </div>
+                <div class="home-mission-stat">
+                  <span class="mission-label">Time Limit</span>
+                  <strong id="homeTargetTime">30s</strong>
+                </div>
+                <div class="home-mission-stat">
+                  <span class="mission-label">Recommended Power</span>
+                  <strong id="homeRecommendedPower">120</strong>
+                </div>
+              </div>
+              <p id="homeCurrentMission" class="home-mission-line">Select a district to begin your run.</p>
+              <div class="hero-actions">
+                <button id="homePlayBtn" class="btn btn-primary">Start Adventure</button>
+              </div>
             </div>
-          </div>
-          <div class="home-grid">
-            <div class="info-card">
-              <h3>Current Assignment</h3>
-              <p id="homeCurrentMission">Select a district to begin your run.</p>
+
+            <div class="home-grid home-stats-grid">
+              <div class="info-card stat-card">
+                <h3>Progress</h3>
+                <p id="homeProgress">0 districts cleared</p>
+                <div class="home-progress-track" aria-hidden="true">
+                  <div id="homeProgressFill" class="home-progress-fill"></div>
+                </div>
+              </div>
+              <div class="info-card stat-card">
+                <h3>Power Curve</h3>
+                <p id="powerCurveLabel">Power curve stable</p>
+                <p>Next: <span id="nextTierLabel">2 mods</span></p>
+              </div>
+              <div class="info-card stat-card">
+                <h3>Milestone Boost</h3>
+                <p><span id="milestoneLabel">+0 dmg</span></p>
+                <p id="homeLastCleared">Last cleared: none</p>
+              </div>
             </div>
-            <div class="info-card">
-              <h3>Progress</h3>
-              <p id="homeProgress">0 districts cleared</p>
+
+            <div class="home-roadmap">
+              <h3>District Roadmap</h3>
+              <p>Clear districts in order to unlock the next adventure route.</p>
+              <div id="homeDistrictRoadmap" class="roadmap-list"></div>
             </div>
-            <div class="info-card">
-              <h3>Power Curve</h3>
-              <p id="powerCurveLabel">Power curve stable</p>
-              <p>Next: <span id="nextTierLabel">2 mods</span> · Boost: <span id="milestoneLabel">+0 dmg</span></p>
+
+            <div class="info-card home-ops-card">
+              <h3>Ops Feed</h3>
+              <p id="homeOpsTip">Tip: Upgrade your weapons before pushing a new district.</p>
+              <div class="home-secondary-actions">
+                <button id="homeDistrictBtn" class="btn btn-secondary">Choose District</button>
+                <button id="homeStoreBtn" class="btn btn-secondary">Open Store</button>
+              </div>
             </div>
-          </div>
-          <div class="home-roadmap">
-            <h3>District Roadmap</h3>
-            <p>Clear districts in order to unlock the next adventure route.</p>
-            <div id="homeDistrictRoadmap" class="roadmap-list"></div>
           </div>
         </section>
 

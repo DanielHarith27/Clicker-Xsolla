@@ -81,17 +81,77 @@ const DISTRICT_STORY = [
   },
 ];
 
-const WEAPON_LABELS = [
-  "Street Gloves",
-  "Chain Whip",
-  "Neon Bat",
-  "Pulse Knife",
-  "Shock Gauntlet",
-  "Riot Hammer",
-  "Phantom Blade",
-  "Turbo Knuckles",
-  "Rail Lance",
-  "Night Fang",
+const WEAPON_LOADOUT = [
+  {
+    name: "Street Gloves",
+    artPath: "/src/assets/weapons/street-gloves.svg",
+    tier: "Starter",
+    description: "Balanced gloves with fast recovery. Great for building early combos.",
+    flavor: "Combo speed + control",
+  },
+  {
+    name: "Chain Whip",
+    artPath: "/src/assets/weapons/chain-whip.svg",
+    tier: "Control",
+    description: "Linked strike coil that punishes evasive enemies with wide swings.",
+    flavor: "Area pressure",
+  },
+  {
+    name: "Neon Bat",
+    artPath: "/src/assets/weapons/neon-bat.svg",
+    tier: "Impact",
+    description: "Charged bat that delivers heavy hits and staggers frontliners.",
+    flavor: "Burst damage",
+  },
+  {
+    name: "Pulse Knife",
+    artPath: "/src/assets/weapons/pulse-knife.svg",
+    tier: "Assassin",
+    description: "Pulse-edged blade tuned for precision cuts and critical finishers.",
+    flavor: "Crit-focused",
+  },
+  {
+    name: "Shock Gauntlet",
+    artPath: "/src/assets/weapons/shock-gauntlet.svg",
+    tier: "Arc",
+    description: "Voltage gauntlet that amplifies every close-range strike.",
+    flavor: "Sustained power",
+  },
+  {
+    name: "Riot Hammer",
+    artPath: "/src/assets/weapons/riot-hammer.svg",
+    tier: "Breaker",
+    description: "Crowd-control hammer built to crack armor and boss defenses.",
+    flavor: "Armor breaker",
+  },
+  {
+    name: "Phantom Blade",
+    artPath: "/src/assets/weapons/phantom-blade.svg",
+    tier: "Stealth",
+    description: "Phase-shift blade that strikes before enemies can react.",
+    flavor: "High tempo",
+  },
+  {
+    name: "Turbo Knuckles",
+    artPath: "/src/assets/weapons/turbo-knuckles.svg",
+    tier: "Rush",
+    description: "Boosted knuckles designed for relentless close-range barrages.",
+    flavor: "Rapid chaining",
+  },
+  {
+    name: "Rail Lance",
+    artPath: "/src/assets/weapons/rail-lance.svg",
+    tier: "Pierce",
+    description: "Rail-accelerated lance that pierces elite targets with force.",
+    flavor: "Boss hunter",
+  },
+  {
+    name: "Night Fang",
+    artPath: "/src/assets/weapons/night-fang.svg",
+    tier: "Mythic",
+    description: "Legendary fang weapon that scales aggressively in late districts.",
+    flavor: "Endgame scaling",
+  },
 ];
 
 const WEAPON_TIER_NAMES = [
@@ -515,6 +575,12 @@ function getDistrictDefinition(levelNumber) {
   };
 }
 
+function getRecommendedPowerForDistrict(levelNumber, district) {
+  const safeLevel = Math.max(1, Number(levelNumber || 1));
+  const waveCount = Math.max(1, Number(district?.waves || 1));
+  return Math.round(26 + safeLevel * 18 + waveCount * 12);
+}
+
 function selectDistrict(levelNumber) {
   storyState.selectedDistrictLevel = levelNumber;
   syncCombatFromDistrictSelection();
@@ -812,12 +878,52 @@ function updateHomePanel() {
   const targetLevel = getNextTargetDistrictLevel();
   const selected = getDistrictDefinition(targetLevel);
   const isTargetCompleted = storyState.completedDistricts.has(targetLevel);
+  const recommendedPower = getRecommendedPowerForDistrict(targetLevel, selected);
+  const totalDistricts = Math.max(1, gameState.levels.length || DISTRICT_STORY.length);
+  const completedCount = storyState.completedDistricts.size;
+  const progressPercent = Math.min(100, Math.round((completedCount / totalDistricts) * 100));
+  const completedSorted = Array.from(storyState.completedDistricts.values()).sort((a, b) => b - a);
+  const lastClearedLevel = completedSorted[0] || null;
 
   DOM.homeStoryText().textContent = `Welcome back, ${gameState.username || "Runner"}. ${selected.intro}`;
   DOM.homeCurrentMission().textContent = isTargetCompleted
-    ? `All currently accessible districts cleared. Replay ${selected.title} or unlock the next route.`
-    : `Next target - ${selected.title}: ${selected.objective}`;
-  DOM.homeProgress().textContent = `${storyState.completedDistricts.size} districts cleared`;
+    ? `All currently accessible districts cleared. Unlock the next route to continue.`
+    : `${selected.objective}`;
+  DOM.homeProgress().textContent = `${completedCount} / ${totalDistricts} districts cleared`;
+
+  const targetDistrictText = document.getElementById("homeTargetDistrict");
+  if (targetDistrictText) {
+    targetDistrictText.textContent = `District ${targetLevel}: ${selected.title}`;
+  }
+
+  const targetTimeText = document.getElementById("homeTargetTime");
+  if (targetTimeText) {
+    targetTimeText.textContent = `${selected.timeLimit || DISTRICT_TIME_LIMIT}s`;
+  }
+
+  const recommendedPowerText = document.getElementById("homeRecommendedPower");
+  if (recommendedPowerText) {
+    recommendedPowerText.textContent = `${formatNumber(recommendedPower)} ATK`;
+  }
+
+  const progressFill = document.getElementById("homeProgressFill");
+  if (progressFill) {
+    progressFill.style.width = `${progressPercent}%`;
+  }
+
+  const lastClearedText = document.getElementById("homeLastCleared");
+  if (lastClearedText) {
+    lastClearedText.textContent = lastClearedLevel
+      ? `Last cleared: District ${lastClearedLevel}`
+      : "Last cleared: none";
+  }
+
+  const homeOpsTip = document.getElementById("homeOpsTip");
+  if (homeOpsTip) {
+    homeOpsTip.textContent = isTargetCompleted
+      ? "Route update: all open districts completed. Unlock the next district gate to continue."
+      : `Route update: prep for District ${targetLevel} - ${selected.title}.`;
+  }
 
   const roadmapRoot = DOM.homeDistrictRoadmap();
   if (!roadmapRoot) return;
@@ -921,23 +1027,38 @@ function updateUpgradeStore() {
     const nextAutoDamage = getUpgradeTotalAutoDamage(upgrade.coins_per_second_gain, ownedCount + 1);
     const nextGain = Math.max(0, nextAutoDamage - currentAutoDamage);
 
-    const card = document.createElement("div");
-    card.className = "upgrade-card";
+    const profile = getWeaponProfile(index);
 
-    const safeName = escapeHtml(getWeaponName(index));
-    const safeDescription = escapeHtml(String(upgrade.description || "Combat enhancement"));
+    const card = document.createElement("div");
+    card.className = `upgrade-card weapon-theme-${index % 6}`;
+
+    const safeName = escapeHtml(profile.name);
+    const safeDescription = escapeHtml(profile.description);
+    const safeFlavor = escapeHtml(profile.flavor);
+    const safeTier = escapeHtml(profile.tier);
 
     card.innerHTML = `
-      <div class="upgrade-header">
-        <div>
-          <div class="upgrade-title">${upgrade.icon || "MOD"} ${safeName}</div>
-          <div class="upgrade-description">${safeDescription}</div>
+      <div class="upgrade-layout">
+        <div class="upgrade-art" aria-hidden="true">
+          <img class="weapon-image" src="${profile.artPath}" alt="${safeName}" loading="lazy" />
+          <span class="weapon-tag">${safeTier}</span>
         </div>
-        <div class="upgrade-owned">x${ownedCount}/${maxOwnedCount}</div>
+        <div>
+          <div class="upgrade-header">
+            <div>
+              <div class="upgrade-title">${upgrade.icon || "MOD"} ${safeName}</div>
+              <div class="upgrade-description">${safeDescription}</div>
+            </div>
+            <div class="upgrade-owned">x${ownedCount}/${maxOwnedCount}</div>
+          </div>
+          <div class="upgrade-flavor">${safeFlavor}</div>
+          <div class="upgrade-metrics">
+            <div class="upgrade-cost">Cost: ${formatNumber(cost)} CR</div>
+            <div class="upgrade-cps">Auto-damage: ${currentAutoDamage.toFixed(2)}/sec</div>
+            <div class="upgrade-cps">Next gain: +${nextGain.toFixed(2)}/sec</div>
+          </div>
+        </div>
       </div>
-      <div class="upgrade-cost">Cost: ${formatNumber(cost)} CR</div>
-      <div class="upgrade-cps">Auto-damage: ${currentAutoDamage.toFixed(2)}/sec</div>
-      <div class="upgrade-cps">Next gain: +${nextGain.toFixed(2)}/sec</div>
       <button class="btn btn-upgrade" ${!canBuy ? "disabled" : ""} data-upgrade-id="${upgrade.id}">
         ${isMaxed ? "MAXED" : "Upgrade"}
       </button>
@@ -1017,7 +1138,17 @@ function getUpgradeTotalAutoDamage(baseGain, ownedCount) {
 }
 
 function getWeaponName(index) {
-  return WEAPON_LABELS[index % WEAPON_LABELS.length] || "Combat Mod";
+  return getWeaponProfile(index).name;
+}
+
+function getWeaponProfile(index) {
+  return WEAPON_LOADOUT[index % WEAPON_LOADOUT.length] || {
+    name: "Combat Mod",
+    artPath: "/src/assets/weapons/street-gloves.svg",
+    tier: "Core",
+    description: "Standard combat enhancement module.",
+    flavor: "Reliable upgrade",
+  };
 }
 
 function calculateAttackPower() {

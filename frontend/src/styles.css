@@ -422,11 +422,60 @@ body::before {
   gap: 10px;
 }
 
+.home-mission-card .hero-actions .btn-primary {
+  min-width: 240px;
+}
+
+.home-dashboard {
+  display: grid;
+  gap: 12px;
+}
+
+.home-mission-card {
+  padding: 20px;
+}
+
+.home-mission-stats {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-mission-stat {
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(7, 11, 20, 0.58);
+  padding: 8px 10px;
+}
+
+.mission-label {
+  display: block;
+  font-size: 14px;
+  color: var(--ink-dim);
+  margin-bottom: 4px;
+}
+
+.home-mission-stat strong {
+  font-size: 20px;
+  color: #dff4ff;
+}
+
+.home-mission-line {
+  margin-top: 10px;
+  font-size: 22px;
+  color: #d5e8f8;
+}
+
 .home-grid {
   margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+.home-stats-grid {
+  margin-top: 0;
 }
 
 .home-roadmap {
@@ -518,6 +567,48 @@ body::before {
   border-radius: var(--radius-sm);
   background: rgba(8, 12, 20, 0.62);
   padding: 12px;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(147, 208, 255, 0.24);
+}
+
+.stat-card p + p {
+  margin-top: 4px;
+}
+
+.home-progress-track {
+  margin-top: 8px;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.home-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #43dde7, #8edc87);
+  transition: width 0.35s ease;
+}
+
+.home-ops-card {
+  margin-top: 0;
+}
+
+.home-ops-card p {
+  color: var(--ink-dim);
+}
+
+.home-secondary-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .info-card h3 {
@@ -754,9 +845,68 @@ body::before {
   gap: 10px;
 }
 
+#storeView .section-header h2 {
+  font-size: 14px;
+  color: #8be4ff;
+}
+
+#storeView .section-header p {
+  max-width: 64ch;
+}
+
+#storeView .upgrade-store {
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 14px;
+}
+
 .upgrade-card,
 .level-card {
   padding: 12px;
+}
+
+.upgrade-card {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-color: rgba(147, 208, 255, 0.15);
+  background: linear-gradient(150deg, rgba(9, 14, 26, 0.9), rgba(11, 18, 32, 0.85));
+}
+
+.upgrade-layout {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.upgrade-art {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.16), transparent 50%),
+    linear-gradient(165deg, rgba(80, 207, 224, 0.25), rgba(154, 110, 255, 0.18));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  min-height: 120px;
+}
+
+.weapon-image {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+}
+
+.weapon-tag {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #cde8ff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 2px 8px;
 }
 
 .upgrade-header,
@@ -776,16 +926,57 @@ body::before {
 
 .upgrade-owned {
   color: var(--green);
-  font-size: 20px;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.upgrade-flavor {
+  margin-top: 8px;
+  font-size: 17px;
+  color: #9bd8ff;
+}
+
+.upgrade-metrics {
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
 }
 
 .upgrade-description,
 .level-threshold,
 .upgrade-cps,
 .upgrade-cost {
-  margin-top: 6px;
+  margin-top: 0;
   color: var(--ink-dim);
-  font-size: 20px;
+  font-size: 18px;
+}
+
+.btn-upgrade {
+  margin-top: auto;
+}
+
+.weapon-theme-0 .upgrade-art {
+  background: linear-gradient(155deg, rgba(59, 188, 216, 0.35), rgba(90, 116, 255, 0.2));
+}
+
+.weapon-theme-1 .upgrade-art {
+  background: linear-gradient(155deg, rgba(112, 192, 240, 0.3), rgba(137, 99, 255, 0.2));
+}
+
+.weapon-theme-2 .upgrade-art {
+  background: linear-gradient(155deg, rgba(77, 212, 160, 0.3), rgba(53, 142, 222, 0.2));
+}
+
+.weapon-theme-3 .upgrade-art {
+  background: linear-gradient(155deg, rgba(255, 162, 86, 0.3), rgba(199, 102, 210, 0.2));
+}
+
+.weapon-theme-4 .upgrade-art {
+  background: linear-gradient(155deg, rgba(255, 130, 130, 0.3), rgba(109, 120, 240, 0.2));
+}
+
+.weapon-theme-5 .upgrade-art {
+  background: linear-gradient(155deg, rgba(148, 126, 255, 0.3), rgba(64, 199, 225, 0.2));
 }
 
 .level-status {
@@ -868,6 +1059,14 @@ body::before {
   }
 
   .home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-mission-stats {
+    grid-template-columns: 1fr;
+  }
+
+  #storeView .upgrade-store {
     grid-template-columns: 1fr;
   }
 }
