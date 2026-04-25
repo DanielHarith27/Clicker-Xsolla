@@ -39,6 +39,10 @@
             <p>Opening payment widget...</p>
           </div>
           <div id="xsollaPaymentContainer"></div>
+          <div class="payment-fallback hidden" id="paymentFallback">
+            <p>Payment completed? Click below if the district wasn't unlocked automatically:</p>
+            <button id="checkPaymentBtn" class="btn btn-primary">Check Payment Status</button>
+          </div>
         </div>
       </div>
     </div>
@@ -64,9 +68,11 @@
           <span id="playerRank" class="header-rank">Street Rank 1</span>
         </div>
         <div class="header-actions">
+          <button id="soundToggle" class="btn btn-secondary icon-btn" title="Toggle Sound">🔊</button>
           <button id="navHomeBtn" class="btn btn-secondary nav-btn">Home</button>
           <button id="navStoreBtn" class="btn btn-secondary nav-btn">Store</button>
           <button id="navDistrictsBtn" class="btn btn-secondary nav-btn">Districts</button>
+          <button id="navAchievementsBtn" class="btn btn-secondary nav-btn">Achievements</button>
           <button id="logoutBtn" class="btn btn-secondary">Logout</button>
         </div>
       </div>
@@ -170,11 +176,14 @@
                 </div>
               </div>
               <div class="run-stats">
-                <span>Time Left <strong id="missionTimer">--</strong></span>
+                <span>Time Left <strong id="missionTimer" class="timer-display">--</strong></span>
                 <span class="combat-divider">|</span>
                 <span>Wave <strong id="waveLabel">0/0</strong></span>
                 <span class="combat-divider">|</span>
                 <span>Status <strong id="runStatusLabel">Idle</strong></span>
+              </div>
+              <div class="time-progress-container">
+                <div id="timeProgressBar" class="time-progress-bar"></div>
               </div>
               <div class="health-wrap">
                 <div class="health-label-row">
@@ -221,6 +230,14 @@
           </div>
           <div id="levelMap" class="level-map"></div>
         </section>
+
+        <section id="achievementsView" class="view-panel hidden">
+          <div class="section-header">
+            <h2>Achievements</h2>
+            <p>Track your accomplishments and unlock rewards throughout your journey.</p>
+          </div>
+          <div id="achievementsList" class="achievements-list"></div>
+        </section>
       </main>
 
       <div class="game-footer">
@@ -231,6 +248,9 @@
 
     <!-- Floating Numbers -->
     <div id="floatingNumbersContainer" class="floating-numbers-container"></div>
+
+    <!-- Achievement Notifications -->
+    <div id="achievementContainer" class="achievement-container"></div>
 
     <script src="https://cdn.xsolla.net/payments-bucket-prod/embed/1.5.4/widget.min.js"></script>
     <script src="/src/game.js"></script>

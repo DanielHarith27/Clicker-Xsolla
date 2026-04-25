@@ -11,6 +11,332 @@ const PAYMENT_MODAL_DELAY = 500;
 const CRIT_CHANCE_CAP = 0.35;
 const DISTRICT_HP_MULTIPLIER = 2.2;
 const DISTRICT_TIME_LIMIT = 30;
+const TIME_WARNING_THRESHOLD = 10; // Warning when less than 10 seconds remaining
+
+// Sound System
+const SOUND_ENABLED_KEY = 'soundEnabled';
+let soundEnabled = localStorage.getItem(SOUND_ENABLED_KEY) !== 'false';
+let audioContext = null;
+let audioContextInitialized = false;
+
+function initAudioContext() {
+  if (audioContextInitialized) return;
+
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+      console.warn('Web Audio API not supported');
+      return;
+    }
+
+    audioContext = new AudioContextClass();
+
+    // Handle audio context state changes
+    audioContext.addEventListener('statechange', () => {
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(err => {
+          console.warn('Failed to resume audio context:', err);
+        });
+      }
+    });
+
+    // Handle audio context errors
+    audioContext.addEventListener('error', (event) => {
+      console.error('Audio context error:', event);
+      audioContextInitialized = false;
+      audioContext = null;
+    });
+
+    audioContextInitialized = true;
+  } catch (error) {
+    console.error('Failed to initialize audio context:', error);
+    audioContextInitialized = false;
+  }
+}
+
+function playSound(type) {
+  if (!soundEnabled) return;
+
+  // Initialize audio context on first user interaction if needed
+  if (!audioContextInitialized) {
+    initAudioContext();
+  }
+
+  if (!audioContext) {
+    console.warn('Audio context not available');
+    return;
+  }
+
+  // Resume audio context if suspended (required by some browsers)
+  if (audioContext.state === 'suspended') {
+    audioContext.resume().catch(err => {
+      console.warn('Failed to resume audio context:', err);
+      return;
+    });
+  }
+
+  try {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    switch (type) {
+      case 'hit':
+        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+        break;
+      case 'critical':
+        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.15);
+        gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+        break;
+      case 'wave_clear':
+        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        break;
+      case 'boss_defeat':
+        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.3);
+        gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+        break;
+      case 'achievement':
+        oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+        break;
+      case 'upgrade':
+        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.15);
+        gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+        break;
+    }
+  } catch (error) {
+    console.error('Error playing sound:', error);
+    // Reset audio context on error
+    audioContextInitialized = false;
+    audioContext = null;
+  }
+}
+
+// Achievement System
+const ACHIEVEMENTS_KEY = 'achievements';
+const ACHIEVEMENT_DEFINITIONS = [
+  { id: 'first_boss', name: 'Boss Hunter', description: 'Defeat your first district boss' },
+  { id: 'combo_master', name: 'Combo Master', description: 'Reach a 10x combo' },
+  { id: 'district_3', name: 'District Conqueror', description: 'Clear District 3' },
+  { id: 'max_upgrade', name: 'Fully Loaded', description: 'Max out any weapon upgrade' },
+  { id: 'speed_demon', name: 'Speed Demon', description: 'Clear a district with 15+ seconds remaining' },
+  { id: 'district_5', name: 'Veteran Runner', description: 'Clear District 5' },
+  { id: 'combo_20', name: 'Unstoppable', description: 'Reach a 20x combo' },
+  { id: 'wealthy', name: 'Credit King', description: 'Earn 10,000 total credits' },
+];
+
+let achievements = new Set();
+let totalCreditsEarned = 0;
+let timeWarningTriggered = false; // Track if we've warned about low time
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem(SOUND_ENABLED_KEY, soundEnabled);
+  updateSoundButton();
+}
+
+function updateSoundButton() {
+  const soundBtn = document.getElementById('soundToggle');
+  if (soundBtn) {
+    soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+    soundBtn.title = soundEnabled ? 'Sound On' : 'Sound Off';
+  }
+}
+
+// Achievement System
+function loadAchievements() {
+  try {
+    const saved = localStorage.getItem(ACHIEVEMENTS_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      achievements = new Set(parsed);
+    }
+  } catch (error) {
+    console.error('Error loading achievements:', error);
+    achievements = new Set();
+  }
+}
+
+function saveAchievements() {
+  localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(Array.from(achievements)));
+}
+
+function unlockAchievement(achievementId) {
+  if (achievements.has(achievementId)) return;
+
+  achievements.add(achievementId);
+  saveAchievements();
+  playSound('achievement');
+
+  const achievement = ACHIEVEMENT_DEFINITIONS.find(a => a.id === achievementId);
+  if (achievement) {
+    showAchievementNotification(achievement);
+  }
+}
+
+function showAchievementNotification(achievement) {
+  const container = document.getElementById('achievementContainer');
+  if (!container) return;
+
+  const notification = document.createElement('div');
+  notification.className = 'achievement-notification';
+  notification.innerHTML = `
+    <div class="achievement-icon">🏆</div>
+    <div class="achievement-info">
+      <div class="achievement-title">Achievement Unlocked!</div>
+      <div class="achievement-name">${escapeHtml(achievement.name)}</div>
+      <div class="achievement-desc">${escapeHtml(achievement.description)}</div>
+    </div>
+  `;
+
+  container.appendChild(notification);
+
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 100);
+
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+function checkAchievements() {
+  // Check combo achievements
+  if (combatState.combo >= 10) unlockAchievement('combo_master');
+  if (combatState.combo >= 20) unlockAchievement('combo_20');
+
+  // Check district achievements
+  if (storyState.completedDistricts.has(3)) unlockAchievement('district_3');
+  if (storyState.completedDistricts.has(5)) unlockAchievement('district_5');
+
+  // Check wealth achievement
+  if (totalCreditsEarned >= 10000) unlockAchievement('wealthy');
+
+  // Check upgrade achievements
+  gameState.upgrades.forEach(upgrade => {
+    const ownedCount = Number(upgrade.owned_count || 0);
+    const maxOwnedCount = Number(upgrade.max_owned_count || 1);
+    if (ownedCount >= maxOwnedCount && maxOwnedCount > 0) {
+      unlockAchievement('max_upgrade');
+    }
+  });
+}
+
+function updateAchievementsDisplay() {
+  const container = document.getElementById('achievementsList');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  ACHIEVEMENT_DEFINITIONS.forEach(achievement => {
+    const isUnlocked = achievements.has(achievement.id);
+    const item = document.createElement('div');
+    item.className = `achievement-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+    item.innerHTML = `
+      <div class="achievement-status">${isUnlocked ? '✓' : '🔒'}</div>
+      <div class="achievement-details">
+        <div class="achievement-name">${escapeHtml(achievement.name)}</div>
+        <div class="achievement-desc">${escapeHtml(achievement.description)}</div>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+// Visual Feedback System
+function triggerScreenShake(intensity = 1) {
+  const gameContainer = DOM.gameContainer();
+  if (!gameContainer) return;
+
+  gameContainer.style.animation = 'none';
+  gameContainer.offsetHeight; // Trigger reflow
+  gameContainer.style.animation = `shake ${0.3 * intensity}s ease-in-out`;
+}
+
+function triggerDamageFlash() {
+  const fightArena = document.querySelector('.fight-arena');
+  if (!fightArena) return;
+
+  fightArena.classList.add('damage-flash');
+  setTimeout(() => {
+    fightArena.classList.remove('damage-flash');
+  }, 150);
+}
+
+function createParticleEffect(x, y, type = 'hit') {
+  const container = DOM.floatingNumbersContainer();
+  if (!container) return;
+
+  const particleCount = type === 'critical' ? 12 : type === 'wave_clear' ? 20 : 8;
+
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div');
+    particle.className = `particle particle-${type}`;
+
+    const angle = (Math.PI * 2 * i) / particleCount;
+    const velocity = 2 + Math.random() * 3;
+    const size = 4 + Math.random() * 6;
+
+    particle.style.cssText = `
+      position: fixed;
+      left: ${x}px;
+      top: ${y}px;
+      width: ${size}px;
+      height: ${size}px;
+      border-radius: 50%;
+      background: ${type === 'critical' ? '#ff6a86' : type === 'wave_clear' ? '#8edc87' : '#50cfe0'};
+      pointer-events: none;
+      z-index: 201;
+    `;
+
+    container.appendChild(particle);
+
+    const animation = particle.animate([
+      { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+      {
+        transform: `translate(${Math.cos(angle) * 100 * velocity}px, ${Math.sin(angle) * 100 * velocity}px) scale(0)`,
+        opacity: 0
+      }
+    ], {
+      duration: 600 + Math.random() * 200,
+      easing: 'cubic-bezier(0, 0.5, 0.5, 1)'
+    });
+
+    animation.onfinish = () => particle.remove();
+  }
+}
 
 const LEVEL_PRICES = {
   2: 299,
@@ -224,6 +550,7 @@ const DOM = {
   missionTimer: () => document.getElementById("missionTimer"),
   waveLabel: () => document.getElementById("waveLabel"),
   runStatusLabel: () => document.getElementById("runStatusLabel"),
+  timeProgressBar: () => document.getElementById("timeProgressBar"),
   enemyName: () => document.getElementById("enemyName"),
   enemyTier: () => document.getElementById("enemyTier"),
   enemyHealthFill: () => document.getElementById("enemyHealthFill"),
@@ -256,6 +583,9 @@ document.addEventListener("DOMContentLoaded", () => {
   gameState.username = localStorage.getItem("username") || "Runner";
   DOM.userDisplay().textContent = gameState.username;
 
+  // Load achievements
+  loadAchievements();
+
   setupEventListeners();
 
   if (oauthCode) {
@@ -270,6 +600,9 @@ document.addEventListener("DOMContentLoaded", () => {
     showGameContainer();
     loadGameState();
   }
+
+  // Initialize sound button
+  updateSoundButton();
 });
 
 function setupEventListeners() {
@@ -285,6 +618,7 @@ function setupEventListeners() {
   document.getElementById("navHomeBtn").addEventListener("click", () => switchView("home"));
   document.getElementById("navStoreBtn").addEventListener("click", () => switchView("store"));
   document.getElementById("navDistrictsBtn").addEventListener("click", () => switchView("districts"));
+  document.getElementById("navAchievementsBtn").addEventListener("click", () => switchView("achievements"));
   document.getElementById("homePlayBtn").addEventListener("click", () => startAdventure());
   document.getElementById("homeStoreBtn").addEventListener("click", () => switchView("store"));
   document.getElementById("homeDistrictBtn").addEventListener("click", () => switchView("districts"));
@@ -294,6 +628,78 @@ function setupEventListeners() {
   });
   DOM.clearNextBtn().addEventListener("click", () => {
     continueToNextDistrict();
+  });
+
+  // Sound toggle
+  const soundToggle = document.getElementById('soundToggle');
+  if (soundToggle) {
+    soundToggle.addEventListener('click', () => {
+      toggleSound();
+      // Initialize audio context on first interaction
+      if (!audioContextInitialized) {
+        initAudioContext();
+      }
+    });
+  }
+
+  // Initialize audio context on first user interaction (required by browsers)
+  const initAudioOnInteraction = () => {
+    if (!audioContextInitialized) {
+      initAudioContext();
+    }
+    document.removeEventListener('click', initAudioOnInteraction);
+    document.removeEventListener('keydown', initAudioOnInteraction);
+  };
+
+  document.addEventListener('click', initAudioOnInteraction);
+  document.addEventListener('keydown', initAudioOnInteraction);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Don't trigger shortcuts when typing in inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key) {
+      case ' ':
+      case 'Enter':
+        e.preventDefault();
+        if (storyState.activeRun && !DOM.clickButton().disabled) {
+          clickCoin({ clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 });
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        if (DOM.paymentModal().classList.contains('active')) {
+          closePaymentModal();
+        } else if (DOM.districtClearModal().classList.contains('active')) {
+          hideDistrictClearModal();
+        } else {
+          switchView('home');
+        }
+        break;
+      case '1':
+        switchView('home');
+        break;
+      case '2':
+        switchView('play');
+        break;
+      case '3':
+        switchView('store');
+        break;
+      case '4':
+        switchView('districts');
+        break;
+      case '5':
+        switchView('achievements');
+        break;
+      case 's':
+      case 'S':
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          saveGame();
+        }
+        break;
+    }
   });
 
   setInterval(updatePassiveIncome, PASSIVE_INCOME_UPDATE_INTERVAL);
@@ -450,6 +856,7 @@ function switchView(viewName) {
     play: "playView",
     store: "storeView",
     districts: "districtsView",
+    achievements: "achievementsView",
   };
 
   Object.values(map).forEach((id) => {
@@ -473,6 +880,8 @@ function switchView(viewName) {
     updateMissionBrief();
     updateRunHud();
     updateCombatUI();
+  } else if (viewName === "achievements") {
+    updateAchievementsDisplay();
   }
 }
 
@@ -609,6 +1018,9 @@ function startSelectedDistrictRun() {
     return;
   }
 
+  // Reset time warning trigger
+  timeWarningTriggered = false;
+
   const district = getDistrictDefinition(levelNumber);
   storyState.activeRun = {
     levelNumber,
@@ -629,6 +1041,23 @@ function startSelectedDistrictRun() {
   storyState.activeRun.intervalId = setInterval(() => {
     if (!storyState.activeRun) return;
     storyState.activeRun.timeLeft -= 1;
+
+    // Check for low time warning
+    if (storyState.activeRun.timeLeft === TIME_WARNING_THRESHOLD && !timeWarningTriggered) {
+      timeWarningTriggered = true;
+      playSound('critical');
+      triggerScreenShake(1);
+      setBattleLog(`⚠️ WARNING: Only ${TIME_WARNING_THRESHOLD} seconds remaining!`);
+      createFloatingNumber(`⚠️ ${TIME_WARNING_THRESHOLD}s LEFT!`, window.innerWidth / 2, 200, "crit");
+    }
+
+    // Additional warnings at critical time points
+    if (storyState.activeRun.timeLeft === 5 && timeWarningTriggered) {
+      playSound('critical');
+      triggerScreenShake(1.5);
+      setBattleLog(`🚨 CRITICAL: 5 seconds remaining!`);
+      createFloatingNumber(`🚨 5s LEFT!`, window.innerWidth / 2, 200, "crit");
+    }
 
     if (storyState.activeRun.timeLeft <= 0) {
       failRun("Time expired. The district boss escaped.");
@@ -674,9 +1103,17 @@ function completeRun() {
   const levelNumber = storyState.activeRun.levelNumber;
   const bonus = Math.max(30, Math.round(35 + levelNumber * 35 + storyState.activeRun.timeLeft * 3));
   gameState.coins += bonus;
+  totalCreditsEarned += bonus;
   storyState.completedDistricts.add(levelNumber);
   storyState.lastClearedDistrictLevel = levelNumber;
   persistCompletedDistricts();
+
+  // Check achievements
+  unlockAchievement('first_boss');
+  if (storyState.activeRun.timeLeft >= 15) {
+    unlockAchievement('speed_demon');
+  }
+  checkAchievements();
 
   gameState.currentLevel = Math.max(gameState.currentLevel, levelNumber + 1);
 
@@ -747,21 +1184,35 @@ async function clickCoin(event) {
   const districtScale = 1 + storyState.activeRun.levelNumber * 0.08;
   const coinsGained = Math.max(1, Math.round((1 + damage * 0.24) * districtScale));
   gameState.coins += coinsGained;
+  totalCreditsEarned += coinsGained;
 
   const x = event?.clientX ?? window.innerWidth / 2;
   const y = event?.clientY ?? window.innerHeight / 2;
+
+  // Sound and visual feedback
+  if (isCritical) {
+    playSound('critical');
+    triggerScreenShake(1.5);
+    triggerDamageFlash();
+    createParticleEffect(x, y, 'critical');
+    createFloatingNumber("CRITICAL", x, y - 36, "crit");
+  } else {
+    playSound('hit');
+    triggerScreenShake(0.5);
+    createParticleEffect(x, y, 'hit');
+  }
+
   createFloatingNumber(`-${damage} HP`, x, y - 10, "damage");
   createFloatingNumber(`+${coinsGained} CR`, x, y + 22, "gain");
-
-  if (isCritical) {
-    createFloatingNumber("CRITICAL", x, y - 36, "crit");
-  }
 
   if (combatState.enemyHealth <= 0) {
     handleWaveClear(x, y);
   } else {
     setBattleLog(`${isCritical ? "Critical strike" : "Hit landed"} for ${damage} damage.`);
   }
+
+  // Check achievements
+  checkAchievements();
 
   updateUI();
 
@@ -780,6 +1231,19 @@ function handleWaveClear(x, y) {
 
   const waveBonus = Math.max(8, Math.round(combatState.enemyMaxHealth * (isBoss ? 0.2 : 0.12)));
   gameState.coins += waveBonus;
+  totalCreditsEarned += waveBonus;
+
+  // Sound and visual feedback
+  if (isBoss) {
+    playSound('boss_defeat');
+    triggerScreenShake(2);
+    createParticleEffect(x, y, 'wave_clear');
+  } else {
+    playSound('wave_clear');
+    triggerScreenShake(1);
+    createParticleEffect(x, y, 'wave_clear');
+  }
+
   createFloatingNumber(`+${waveBonus} WAVE`, x, y - 46, "gain");
 
   if (isBoss) {
@@ -821,7 +1285,15 @@ async function buyUpgrade(upgradeId) {
     const data = await apiCall("/game/buy-upgrade", { upgrade_id: upgradeId });
     gameState.coins = Number(data.coins ?? gameState.coins);
     gameState.coinsPerSecond = Number(data.coins_per_second ?? gameState.coinsPerSecond);
-    await loadGameState();
+
+    // Load updated game state without switching views
+    const stateData = await apiCall("/game/state", null, "GET");
+    gameState.upgrades = Array.isArray(stateData.upgrades) ? stateData.upgrades : [];
+    gameState.levels = Array.isArray(stateData.levels) ? stateData.levels : [];
+
+    playSound('upgrade');
+    checkAchievements();
+    updateUI(); // Update UI while staying in current view
   } catch (error) {
     alert(error.message || "Cannot buy upgrade");
   }
@@ -832,7 +1304,15 @@ async function unlockLevelWithCoins(levelNumber, options = {}) {
 
   try {
     await apiCall("/game/unlock-level", { level_number: levelNumber });
-    await loadGameState();
+
+    // Load updated game state without switching views
+    const stateData = await apiCall("/game/state", null, "GET");
+    gameState.upgrades = Array.isArray(stateData.upgrades) ? stateData.upgrades : [];
+    gameState.levels = Array.isArray(stateData.levels) ? stateData.levels : [];
+    gameState.coins = Number(stateData.coins ?? gameState.coins);
+    gameState.coinsPerSecond = Number(stateData.coins_per_second ?? gameState.coinsPerSecond);
+
+    updateUI(); // Update UI while staying in current view
   } catch (error) {
     if (!silent) {
       alert(error.message || "Cannot unlock district");
@@ -982,6 +1462,9 @@ function updateRunHud() {
   const run = storyState.activeRun;
   if (!run) {
     DOM.missionTimer().textContent = "--";
+    DOM.missionTimer().className = "timer-display";
+    DOM.timeProgressBar().style.width = "100%";
+    DOM.timeProgressBar().className = "time-progress-bar";
     DOM.waveLabel().textContent = "0/0";
     DOM.runStatusLabel().textContent = "Idle";
     DOM.startRunBtn().disabled = false;
@@ -991,6 +1474,24 @@ function updateRunHud() {
   }
 
   DOM.missionTimer().textContent = `${run.timeLeft}s`;
+
+  // Calculate time progress percentage
+  const totalTime = run.district?.timeLimit || DISTRICT_TIME_LIMIT;
+  const timePercent = Math.max(0, (run.timeLeft / totalTime) * 100);
+  DOM.timeProgressBar().style.width = `${timePercent}%`;
+
+  // Apply warning styling based on remaining time
+  DOM.missionTimer().className = "timer-display";
+  DOM.timeProgressBar().className = "time-progress-bar";
+
+  if (run.timeLeft <= 5) {
+    DOM.missionTimer().classList.add("critical");
+    DOM.timeProgressBar().classList.add("critical");
+  } else if (run.timeLeft <= TIME_WARNING_THRESHOLD) {
+    DOM.missionTimer().classList.add("warning");
+    DOM.timeProgressBar().classList.add("warning");
+  }
+
   DOM.waveLabel().textContent = `${run.wave}/${run.totalWaves}`;
   DOM.runStatusLabel().textContent = run.status;
 }
@@ -1228,7 +1729,16 @@ function updateCombatUI() {
 }
 
 function setBattleLog(text) {
-  DOM.battleLog().textContent = text;
+  const battleLog = DOM.battleLog();
+  battleLog.textContent = text;
+
+  // Apply warning styling based on content
+  battleLog.className = "battle-log";
+  if (text.includes("CRITICAL") || text.includes("🚨")) {
+    battleLog.classList.add("critical");
+  } else if (text.includes("WARNING") || text.includes("⚠️")) {
+    battleLog.classList.add("warning");
+  }
 }
 
 function createFloatingNumber(text, x, y, variant = "") {
@@ -1324,7 +1834,18 @@ async function initializeXsollaPayment(levelNumber) {
   }
 }
 
+let paymentCheckInterval = null;
+let currentPaymentLevel = null;
+
 function openXsollaPayStation(accessToken, levelNumber, isSandbox) {
+  currentPaymentLevel = levelNumber; // Store for manual check
+
+  console.log('Opening Xsolla PayStation:', {
+    levelNumber,
+    isSandbox,
+    hasAccessToken: !!accessToken
+  });
+
   const options = {
     access_token: accessToken,
     sandbox: isSandbox,
@@ -1343,41 +1864,260 @@ function openXsollaPayStation(accessToken, levelNumber, isSandbox) {
     },
   };
 
+  console.log('Setting up Xsolla event listeners...');
+
+  // Clear any existing event listeners and intervals
+  if (window.XPayStationWidget) {
+    console.log('Clearing existing Xsolla event listeners...');
+    window.XPayStationWidget.off(window.XPayStationWidget.eventTypes.STATUS);
+    window.XPayStationWidget.off(window.XPayStationWidget.eventTypes.CLOSE);
+    window.XPayStationWidget.off(window.XPayStationWidget.eventTypes.ERROR);
+    window.XPayStationWidget.off(window.XPayStationWidget.eventTypes.SUCCESS);
+  }
+
+  if (paymentCheckInterval) {
+    clearInterval(paymentCheckInterval);
+    paymentCheckInterval = null;
+  }
+
+  // Store the initial unlocked state to detect changes
+  const initialUnlockedState = new Set();
+  gameState.levels.forEach(level => {
+    if (level.unlocked) {
+      initialUnlockedState.add(level.level_number);
+    }
+  });
+
+  // Set up polling as a fallback mechanism
+  const startPaymentPolling = () => {
+    console.log('Starting payment polling as fallback...');
+    let pollCount = 0;
+    const maxPolls = 60; // Poll for up to 2 minutes (60 * 2 seconds)
+
+    paymentCheckInterval = setInterval(async () => {
+      pollCount++;
+      if (pollCount > maxPolls) {
+        console.log('Payment polling timeout reached');
+        clearInterval(paymentCheckInterval);
+        paymentCheckInterval = null;
+        // Show manual check button
+        showPaymentFallback();
+        return;
+      }
+
+      try {
+        console.log(`Payment poll ${pollCount}/${maxPolls}: Checking game state...`);
+        const stateData = await apiCall("/game/state", null, "GET");
+
+        // Check if the level was unlocked
+        const levelWasUnlocked = stateData.levels && stateData.levels.some(
+          level => level.level_number === levelNumber && level.unlocked
+        );
+
+        if (levelWasUnlocked && !initialUnlockedState.has(levelNumber)) {
+          console.log('Payment detected via polling! Level was unlocked.');
+          clearInterval(paymentCheckInterval);
+          paymentCheckInterval = null;
+
+          // Simulate the payment success data
+          const mockTransactionData = {
+            transaction_id: `polling_detected_${Date.now()}`,
+            invoice: `polling_detected_${Date.now()}`,
+            status: 'done'
+          };
+
+          handlePaymentSuccess(mockTransactionData, levelNumber);
+        }
+      } catch (error) {
+        console.error('Error during payment polling:', error);
+      }
+    }, 2000); // Check every 2 seconds
+  };
+
   window.XPayStationWidget.on(window.XPayStationWidget.eventTypes.STATUS, (event, data) => {
-    if (data.status === "done") {
+    console.log('Xsolla STATUS event received:', event, data);
+    console.log('Status data details:', JSON.stringify(data));
+
+    if (data && data.status === "done") {
+      console.log('Payment completed successfully, calling handlePaymentSuccess...');
+      // Stop polling since we got the event
+      if (paymentCheckInterval) {
+        clearInterval(paymentCheckInterval);
+        paymentCheckInterval = null;
+      }
       handlePaymentSuccess(data, levelNumber);
+    } else if (data && data.status) {
+      console.log('Payment status:', data.status);
     }
   });
 
   window.XPayStationWidget.on(window.XPayStationWidget.eventTypes.CLOSE, () => {
+    console.log('Xsolla widget closed');
+    // Stop polling when widget closes
+    if (paymentCheckInterval) {
+      clearInterval(paymentCheckInterval);
+      paymentCheckInterval = null;
+    }
+    // Show manual check button if payment might have completed
+    showPaymentFallback();
     closePaymentModal();
   });
 
   window.XPayStationWidget.on(window.XPayStationWidget.eventTypes.ERROR, (event, data) => {
+    console.error('Xsolla ERROR event received:', event, data);
+    // Stop polling on error
+    if (paymentCheckInterval) {
+      clearInterval(paymentCheckInterval);
+      paymentCheckInterval = null;
+    }
     handlePaymentError(data);
   });
 
-  window.XPayStationWidget.init(options);
-  window.XPayStationWidget.open();
+  // Also listen for the success event directly
+  window.XPayStationWidget.on(window.XPayStationWidget.eventTypes.SUCCESS, (event, data) => {
+    console.log('Xsolla SUCCESS event received:', event, data);
+    console.log('Success data details:', JSON.stringify(data));
+    // Stop polling since we got the event
+    if (paymentCheckInterval) {
+      clearInterval(paymentCheckInterval);
+      paymentCheckInterval = null;
+    }
+    handlePaymentSuccess(data, levelNumber);
+  });
+
+  console.log('Initializing Xsolla widget...');
+  try {
+    window.XPayStationWidget.init(options);
+    console.log('Xsolla widget initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize Xsolla widget:', error);
+    alert('Failed to initialize payment widget. Please try again.');
+    closePaymentModal();
+    return;
+  }
+
+  console.log('Opening Xsolla widget...');
+  try {
+    window.XPayStationWidget.open();
+    console.log('Xsolla widget opened successfully');
+    // Start polling as a fallback mechanism
+    startPaymentPolling();
+  } catch (error) {
+    console.error('Failed to open Xsolla widget:', error);
+    alert('Failed to open payment widget. Please try again.');
+    closePaymentModal();
+  }
 }
+
+function showPaymentFallback() {
+  const fallback = document.getElementById('paymentFallback');
+  if (fallback) {
+    fallback.classList.remove('hidden');
+  }
+}
+
+async function checkPaymentStatus() {
+  if (!currentPaymentLevel) {
+    alert('No payment in progress to check.');
+    return;
+  }
+
+  try {
+    console.log('Manually checking payment status for level:', currentPaymentLevel);
+    const stateData = await apiCall("/game/state", null, "GET");
+
+    // Check if the level is unlocked
+    const levelIsUnlocked = stateData.levels && stateData.levels.some(
+      level => level.level_number === currentPaymentLevel && level.unlocked
+    );
+
+    if (levelIsUnlocked) {
+      console.log('Payment confirmed! Level is unlocked.');
+      const mockTransactionData = {
+        transaction_id: `manual_check_${Date.now()}`,
+        invoice: `manual_check_${Date.now()}`,
+        status: 'done'
+      };
+
+      handlePaymentSuccess(mockTransactionData, currentPaymentLevel);
+    } else {
+      alert('Payment not yet processed. Please wait a moment and try again, or contact support if the issue persists.');
+    }
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    alert('Failed to check payment status. Please try again.');
+  }
+}
+
+// Add event listener for manual payment check button
+document.addEventListener('DOMContentLoaded', () => {
+  const checkPaymentBtn = document.getElementById('checkPaymentBtn');
+  if (checkPaymentBtn) {
+    checkPaymentBtn.addEventListener('click', checkPaymentStatus);
+  }
+});
 
 async function handlePaymentSuccess(transaction, levelNumber) {
   try {
+    console.log('Payment success received:', transaction);
+    console.log('Processing payment for level:', levelNumber);
+
     const transactionId = transaction.transaction_id || transaction.invoice || `local_${Date.now()}`;
     const amountCents = LEVEL_PRICES[levelNumber] || 299;
 
-    await apiCall("/game/unlock-level-payment", {
+    console.log('Calling unlock-level-payment API:', {
+      level_number: levelNumber,
+      xsolla_payment_id: transactionId,
+      amount_cents: amountCents
+    });
+
+    const result = await apiCall("/game/unlock-level-payment", {
       level_number: levelNumber,
       xsolla_payment_id: transactionId,
       amount_cents: amountCents,
     });
 
-    alert(`District ${levelNumber} unlocked.`);
+    console.log('API response:', result);
+
+    // Add the payment amount as coins
+    const coinsToAdd = amountCents;
+    gameState.coins += coinsToAdd;
+    totalCreditsEarned += coinsToAdd;
+
+    console.log('Updated game state:', {
+      coins: gameState.coins,
+      levelNumber: levelNumber,
+      coinsAdded: coinsToAdd
+    });
+
+    alert(`District ${levelNumber} unlocked. You received +${coinsToAdd} credits!`);
     closePaymentModal();
-    await loadGameState();
+
+    // Load updated game state without switching views
+    console.log('Loading updated game state...');
+    const stateData = await apiCall("/game/state", null, "GET");
+    console.log('Loaded game state:', stateData);
+
+    gameState.upgrades = Array.isArray(stateData.upgrades) ? stateData.upgrades : [];
+    gameState.levels = Array.isArray(stateData.levels) ? stateData.levels : [];
+    // Use the server's coin balance to ensure sync
+    gameState.coins = Number(result.coins ?? stateData.coins ?? gameState.coins);
+    gameState.coinsPerSecond = Number(stateData.coins_per_second ?? gameState.coinsPerSecond);
+
+    console.log('Final game state:', {
+      coins: gameState.coins,
+      coinsPerSecond: gameState.coinsPerSecond,
+      levels: gameState.levels.length
+    });
+
+    updateUI();
     switchView("districts");
   } catch (error) {
     console.error("Payment success handling error:", error);
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack
+    });
     alert("District unlocked, but local sync failed. Refresh if needed.");
     closePaymentModal();
   }

@@ -381,7 +381,24 @@ func (h *GameHandler) UnlockLevelPayment(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{Success: true, Message: "Level unlocked via payment!"})
+	// Add coins equal to payment amount (convert cents to coins)
+	coinsToAdd := int64(req.AmountCents)
+	var newCoins int64
+	err = h.db.QueryRow(
+		"UPDATE game_state SET coins = coins + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 RETURNING coins",
+		coinsToAdd, userID,
+	).Scan(&newCoins)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "failed to add coins"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Level unlocked via payment!",
+		"coins":   newCoins,
+	})
 }
 
 // UpdateCoins handles passive income updates

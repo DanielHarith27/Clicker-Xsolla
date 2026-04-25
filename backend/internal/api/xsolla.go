@@ -145,32 +145,103 @@ func (h *XsollaHandler) HandlePaymentWebhook(c *gin.Context) {
 	var webhook models.XsollaPaymentWebhook
 
 	if err := c.ShouldBindJSON(&webhook); err != nil {
+		fmt.Printf("Webhook binding error: %v\n", err)
 		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "invalid request"})
 		return
 	}
 
+	fmt.Printf("Received webhook: UserID=%s, PaymentID=%d, Status=%s, Amount=%f, OrderID=%s\n",
+		webhook.UserID, webhook.PaymentID, webhook.Status, webhook.Amount, webhook.OrderID)
+
 	// Verify signature
 	if !h.client.VerifyWebhookSignature(webhook.UserID, webhook.PaymentID, webhook.Signature) {
+		fmt.Printf("Signature verification failed for user %s, payment %d\n", webhook.UserID, webhook.PaymentID)
 		c.JSON(http.StatusUnauthorized, models.ErrorResponse{Error: "invalid signature"})
 		return
 	}
 
 	// Only process completed payments
 	if webhook.Status != "completed" {
+		fmt.Printf("Payment %d not completed, status: %s\n", webhook.PaymentID, webhook.Status)
 		c.JSON(http.StatusOK, models.SuccessResponse{Success: true})
 		return
 	}
 
-	userID, _ := strconv.Atoi(webhook.UserID)
+	userID, err := strconv.Atoi(webhook.UserID)
+	if err != nil {
+		fmt.Printf("Invalid user ID: %s\n", webhook.UserID)
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "invalid user_id"})
+		return
+	}
 
-	_, err := h.db.Exec(
-		"INSERT INTO payment_records (user_id, xsolla_payment_id, amount_cents, status) VALUES ($1, $2, $3, $4)",
-		userID, webhook.PaymentID, int(webhook.Amount*100), "completed",
+	// Parse level number from order ID
+	// Order ID format: level_{level}_user_{user}_{timestamp}
+	levelNumber := 0
+	if webhook.OrderID != "" {
+		parts := strings.Split(webhook.OrderID, "_")
+		if len(parts) >= 2 && parts[0] == "level" {
+			if parsedLevel, err := strconv.Atoi(parts[1]); err == nil {
+				levelNumber = parsedLevel
+				fmt.Printf("Parsed level number from order ID: %d\n", levelNumber)
+			}
+		}
+	}
+
+	// If we couldn't parse the level number, try to find it from payment amount
+	if levelNumber == 0 {
+		amountCents := int(webhook.Amount * 100)
+		fmt.Printf("Could not parse level from order ID, trying to match amount: %d cents\n", amountCents)
+		for lvl, price := range models.LevelPricesMap {
+			if price == amountCents {
+				levelNumber = lvl
+				fmt.Printf("Matched amount to level: %d\n", levelNumber)
+				break
+			}
+		}
+	}
+
+	// Record payment
+	_, err = h.db.Exec(
+		"INSERT INTO payment_records (user_id, xsolla_payment_id, level_number, amount_cents, status) VALUES ($1, $2, $3, $4, $5)",
+		userID, webhook.PaymentID, levelNumber, int(webhook.Amount*100), "completed",
 	)
 	if err != nil {
-		// Log error but return success to Xsolla
-		c.JSON(http.StatusOK, models.SuccessResponse{Success: true})
-		return
+		fmt.Printf("Failed to record payment: %v\n", err)
+	} else {
+		fmt.Printf("Successfully recorded payment: user=%d, payment=%d, level=%d, amount=%d\n",
+			userID, webhook.PaymentID, levelNumber, int(webhook.Amount*100))
+	}
+
+	// Only unlock district and add coins if we have a valid level number
+	if levelNumber > 0 {
+		// Unlock the district
+		result, err := h.db.Exec(
+			"INSERT INTO user_levels (user_id, level_number, unlocked, unlocked_at) VALUES ($1, $2, true, CURRENT_TIMESTAMP) ON CONFLICT (user_id, level_number) DO UPDATE SET unlocked = true, unlocked_at = CURRENT_TIMESTAMP",
+			userID, levelNumber,
+		)
+		if err != nil {
+			fmt.Printf("Failed to unlock level %d for user %d: %v\n", levelNumber, userID, err)
+		} else {
+			rowsAffected, _ := result.RowsAffected()
+			fmt.Printf("Unlocked level %d for user %d (rows affected: %d)\n", levelNumber, userID, rowsAffected)
+		}
+
+		// Add coins equal to payment amount
+		coinsToAdd := int64(webhook.Amount * 100)
+		result, err = h.db.Exec(
+			"UPDATE game_state SET coins = coins + $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2",
+			coinsToAdd, userID,
+		)
+		if err != nil {
+			fmt.Printf("Failed to add coins for user %d: %v\n", userID, err)
+		} else {
+			rowsAffected, _ := result.RowsAffected()
+			fmt.Printf("Added %d coins for user %d (rows affected: %d)\n", coinsToAdd, userID, rowsAffected)
+		}
+
+		fmt.Printf("Successfully processed payment: user %d unlocked level %d and received %d coins\n", userID, levelNumber, coinsToAdd)
+	} else {
+		fmt.Printf("Warning: Could not determine level number for payment %d from user %d\n", webhook.PaymentID, userID)
 	}
 
 	c.JSON(http.StatusOK, models.SuccessResponse{Success: true})

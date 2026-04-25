@@ -257,7 +257,7 @@ type XsollaPaymentWebhook struct {
 	Status    string  `json:"status"`
 	Amount    float64 `json:"amount"`
 	Currency  string  `json:"currency"`
-	OrderID   string  `json:"order_id"`
+	OrderID   string  `json:"order_id"` // Contains level number in format: level_{level}_user_{user}_{timestamp}
 	Timestamp int64   `json:"timestamp"`
 	Signature string  `json:"signature"`
 }
